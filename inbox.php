@@ -21,14 +21,14 @@ $nickname = $_POST['nickname'] ?? '';
 
 
 if (!$uuid || !$encryptedPayload || !$provided_hmac || !$nickname) {
-    die("❌ Missing input data (UUID, Payload, HMAC, or Nickname).");
+    die("Missing input data (UUID, Payload, HMAC, or Nickname).");
 }
 
 // Use Registration DB for rotation formula
 
 $mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
 if (!$mysqli) {
-    die("Registration DB connection failed: " . mysqli_connect_error());
+    die("DB connection failed: " . mysqli_connect_error());
 }
 
 $stmt = $mysqli->prepare("SELECT modifier, expected_result, used FROM turn_formula WHERE uuid = ? LIMIT 1");
@@ -98,7 +98,7 @@ $new_expected = rand(1000, 9999);
 // Save the new challenge in DB
 $mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
 if (!$mysqli) {
-    die("Registration DB connection failed: " . mysqli_connect_error());
+    die("DB connection failed: " . mysqli_connect_error());
 }
 $insert = $mysqli->prepare("INSERT INTO turn_formula (uuid, formula_type, modifier, expected_result, used) VALUES (?, 'mod', ?, ?, 0)");
 $insert->bind_param("sii", $new_uuid, $new_modifier, $new_expected);
@@ -344,7 +344,7 @@ require '/var/secur/config.php';
 
 $MsgConn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
 if (!$MsgConn) {
-    die("Message DB connection failed: " . mysqli_connect_error());
+    die("DB connection failed: " . mysqli_connect_error());
 }
 
 // Protect against SQL injection
@@ -360,7 +360,7 @@ require '/var/Secur/config.php';
 
 $MsgConn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
 if (!$MsgConn) {
-    die("Message DB connection failed: " . mysqli_connect_error());
+    die("DB connection failed: " . mysqli_connect_error());
 }
 
 $nickname_safe = mysqli_real_escape_string($MsgConn, $nickname);
