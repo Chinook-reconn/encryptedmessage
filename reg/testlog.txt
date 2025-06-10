@@ -1,0 +1,11 @@
+
+[2025-06-05 15:01:13] download_key.php triggered
+[2025-06-05 15:01:13] Incoming key_file: login-5c8db50600396f29-priv.pem, nickname: 86b0e8c0
+[2025-06-05 15:01:13] ❌ Redis key expired or not found: reg:86b0e8c0
+[2025-06-05 15:15:13] download_key.php triggered
+[2025-06-05 15:15:13] Incoming key_file: login-54dd46fb01d6b0cb-priv.pem, nickname: 27073f0a
+[2025-06-05 15:15:13] ✅ Sending key file: /var/www/html/keys/login-54dd46fb01d6b0cb-priv.pem
+[2025-06-05 15:15:13] 🗑️ Key file deleted after download.
+[2025-06-05 15:17:32] download_key.php triggered
+[2025-06-05 15:17:32] Incoming key_file: login-c314b634faa1ffd6-priv.pem, nickname: 7d47771f
+[2025-06-05 15:17:32] ❌ Redis key expired or not found: reg:7d47771f
