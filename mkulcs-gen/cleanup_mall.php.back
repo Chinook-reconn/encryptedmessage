@@ -1,0 +1,119 @@
+<?php
+
+require '/var/secure-config/config.php';
+
+// Get user input
+$filename = $_POST['key_file'] ?? '';
+$nickname = $_POST['nickname'] ?? '';
+
+if (!$filename || !$nickname) {
+    die("Missing data.");
+}
+
+
+
+// STEP 1: Check if user downloaded the key
+$Pconn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
+if (!$Pconn) {
+    die("DB connection failed: " . mysqli_connect_error());
+}
+
+$stmt = $Pconn->prepare("SELECT aTKOJaiae FROM jLqBdLDcK WHERE FpSHyAMcs = ?");
+$stmt->bind_param("s", $nickname);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows === 0) {
+    $stmt->close();
+    $Pconn->close();
+    die("User not found.");
+}
+
+$row = $result->fetch_assoc();
+$flag = (int) $row['igFM5R35Ap'];
+$stmt->close();
+$Pconn->close();
+
+$downloaded = ($flag % 2 === 0); //even = downloaded
+
+if (!$downloaded) {
+    
+
+    // Log the event
+    $logFile = "/var/www/html/mess_keys/mkey-delete.txt";
+    $logMessage = date("Y-m-d H:i:s") . " - Private key not downloaded by user: $nickname\n";
+    file_put_contents($logFile, $logMessage, FILE_APPEND | LOCK_EX);
+
+    // Delete file
+    $filePath = "/var/www/html/mess_keys/" . basename($filename);
+    if (file_exists($filePath)) {
+        unlink($filePath);
+    }
+
+    // Delete public key from DB
+    require '/var/f7csRV885rq5a/TfTgWWZH.php';
+    $Conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
+    if ($Conn) {
+        $stmtDel = $MsgConn->prepare("UPDATE 74RX4Ah5c SET xK3I4FY52 = NULL, 4uEY1Kr = NULL WHERE 2QA7r5okW = ?");
+        $stmtDel->bind_param("s", $nickname);
+        $stmtDel->execute();
+        $stmtDel->close();
+        $Conn->close();
+    }
+
+    header("Location: ../index.html");
+    exit;
+}
+
+
+//User downloaded key — generate a new challenge
+
+$new_uuid = bin2hex(random_bytes(16));
+$new_modifier = rand(150000, 300000);
+$new_expected = rand(1000, 9999);
+
+// Save to DB
+$mysqli = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_DB);
+if (!$mysqli) {
+    die("DB connection failed: " . mysqli_connect_error());
+}
+$insert = $mysqli->prepare("INSERT INTO turn_formula (uuid, formula_type, modifier, expected_result, used) VALUES (?, 'mod', ?, ?, 0)");
+$insert->bind_param("sii", $new_uuid, $new_modifier, $new_expected);
+$insert->execute();
+$insert->close();
+$mysqli->close();
+
+// Calculate challenge
+function calculateClosestMod($modifier, $expected) {
+    $expected = $expected % $modifier;
+    $target = random_int(500000, 9999999999);
+    $delta = $target - $expected;
+    $k1 = intdiv($delta, $modifier);
+    $k2 = $k1 + 1;
+    $x1 = $modifier * $k1 + $expected;
+    $x2 = $modifier * $k2 + $expected;
+    $closest = (abs($x1 - $target) <= abs($x2 - $target)) ? $x1 : $x2;
+    return [$closest, $target];
+}
+
+list($closest1, $target1) = calculateClosestMod($new_modifier, $new_expected);
+
+// Encrypt data
+$key = hash_hmac('sha256', $new_uuid, 'YourStaticAppWideSecret#123', true);
+$key = substr($key, 0, SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
+$nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+$plaintext = json_encode(['closest1' => $closest1, 'target1' => $target1]);
+$ciphertext = sodium_crypto_secretbox($plaintext, $nonce, $key);
+$encryptedPayload = base64_encode($nonce . $ciphertext);
+$hmac = hash_hmac('sha256', "$new_uuid|$target1", 'YourStaticAppWideSecret#123');
+
+//POST forward to inbox.php
+echo <<<HTML
+<form id="forward" action="../inbox.php" method="POST">
+  <input type="hidden" name="uuid" value="{$new_uuid}">
+  <input type="hidden" name="data" value="{$encryptedPayload}">
+  <input type="hidden" name="hmac" value="{$hmac}">
+  <input type="hidden" name="nickname" value="{$nickname}">
+</form>
+<script>document.getElementById('forward').submit();</script>
+HTML;
+exit;
