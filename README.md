@@ -1,4 +1,4 @@
-# encryptedmessage
+# un-tracker.com
 2025.Jun
 http://un-tracker.com
 Unlike traditional messaging apps or email, where data travels across multiple servers or devices, this platform works differently — and more privately.
