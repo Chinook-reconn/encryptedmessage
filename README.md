@@ -1,5 +1,6 @@
 # encryptedmessage
 2025.Jun
+http://un-tracker.com
 Unlike traditional messaging apps or email, where data travels across multiple servers or devices, this platform works differently — and more privately.
 
 Messages do not circle around the internet. They are stored on the same secure server where the platform runs. When you send a message, it stays in one place — the server you're connected to. The recipient connects to the same system to retrieve and decrypt it.
